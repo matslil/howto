@@ -1,0 +1,65 @@
+digraph gpg {
+        //----------------
+        // Default settigs
+        //----------------
+
+        fontname="Bitstream Vera Sans"
+        fontsize=8
+
+        graph [
+                nodesep=0.5
+                ranksep=1.5
+                ordering=out
+        ]
+
+        node [
+                shape="record"
+        ]
+
+        edge [
+                arrowhead=vee
+                labeldistance=1.5
+        ]
+
+        // Layout
+
+        {rank=same; "gpg"}
+        {rank=same; "private keyring" "public keyring"}
+        {rank=same; "private key" "public key"}
+
+        // Nodes
+        "public key" [label="{public key|+ hash : Key fingerprint\l+ created : Date created\l+ expires : Expiration date\l+ usage : One or more of certify, sign, encrypt and authenticate\l}"]
+        "signature" [label="{signature|+ hash : Hash of key that signed the uid\l+ policy : URL to policy description\l+ notation : Notation text\l}"]
+        "private key" [label="{private key|+ hash : Key fingerprint\l+ key : Actual key data. NOTE: Only available if no smart card association!\l}"]
+        "smart card" [label="{smart card|+ serial : Smart card serial number\l}"]
+
+        //
+        // Relations
+        //
+
+        // Is part of
+
+        "sub-key" -> "master key" [arrowhead=diamond, taillabel="*", headlabel="1"]
+        "uid" -> "master key" [arrowhead=diamond, taillabel="*", headlabel="1"]
+        "signature" -> "uid" [arrowhead=diamond, taillabel="*", headlabel="1"]
+        "public key" -> "keyserver" [arrowhead=diamond, label="stores", taillabel="*", headlabel="*"]
+        "public key" -> "public keyring" [arrowhead=diamond, taillabel="*", headlabel="*"]
+        "private key" -> "private keyring" [arrowhead=diamond, taillabel="*", headlabel="*"]
+
+        // Child to
+
+        "master key" -> "public key" [arrowhead=onormal]
+        "sub-key" -> "public key" [arrowhead=onormal]
+        "e-mail uid" -> "uid" [arrowhead=onormal]
+        "photo uid" -> "uid" [arrowhead=onormal]
+
+        // Mutually relates to
+
+        "private key" -> "public key" [arrowhead=none, label="same hash as"]
+
+        // Relates to
+
+        "private key" -> "smart card" [taillabel="*", headlabel="0..1"]
+        "gpg" -> "public keyring" [label="operates on"]
+        "gpg" -> "private keyring" [label="operates on"]
+}
