@@ -1,3 +1,8 @@
+License:
+
+![License icon](license-icon-88x31.png)
+This work is licensed under a Creative Commons Attribution 4.0 International License.
+
 Problems:
 
 - Using multiple Yubikeys for same GPG key
