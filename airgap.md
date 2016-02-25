@@ -77,9 +77,9 @@ apt-get install --yes ubuntu-standard casper lupin-casper
 apt-get install --yes discover laptop-detect os-prober
 apt-get install --yes linux-generic
 
-# Install yubikey support
+# Install yubikey and GPG support
 apt-get install --yes yubikey-personalization-gui yubikey-neo-manager yubikey-personalization python-pkg-resources ykneomgr
-apt-get install --yes pcscd scdaemon gnupg2 pcsc-tools
+apt-get install --yes pcscd scdaemon gnupg2 pcsc-tools paperkey
 
 # Install X-server support using xfce4 window manager, needed by some yubikey tools
 apt-get install --yes xserver-xorg xserver-xorg-core xfonts-base xinit x11-xserver-utils
