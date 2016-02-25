@@ -13,7 +13,9 @@ digraph gpg {
         ]
 
         node [
-                shape="record"
+                shape=record
+                style=filled
+                color=white
         ]
 
         edge [
@@ -21,45 +23,75 @@ digraph gpg {
                 labeldistance=1.5
         ]
 
-        // Layout
+        {
+                node [
+                      style=solid
+                      color=black
+                ]
 
-        {rank=same; "gpg"}
-        {rank=same; "private keyring" "public keyring"}
-        {rank=same; "private key" "public key"}
+                "gpg"
+                "private keyring"
+                "public keyring"
+        }
 
-        // Nodes
-        "public key" [label="{public key|+ hash : Key fingerprint\l+ created : Date created\l+ expires : Expiration date\l+ usage : One or more of certify, sign, encrypt and authenticate\l}"]
-        "signature" [label="{signature|+ hash : Hash of key that signed the uid\l+ policy : URL to policy description\l+ notation : Notation text\l}"]
-        "private key" [label="{private key|+ hash : Key fingerprint\l+ key : Actual key data. NOTE: Only available if no smart card association!\l}"]
-        "smart card" [label="{smart card|+ serial : Smart card serial number\l}"]
-
-        //
-        // Relations
-        //
-
-        // Is part of
-
-        "sub-key" -> "master key" [arrowhead=diamond, taillabel="*", headlabel="1"]
-        "uid" -> "master key" [arrowhead=diamond, taillabel="*", headlabel="1"]
-        "signature" -> "uid" [arrowhead=diamond, taillabel="*", headlabel="1"]
-        "public key" -> "keyserver" [arrowhead=diamond, label="stores", taillabel="*", headlabel="*"]
-        "public key" -> "public keyring" [arrowhead=diamond, taillabel="*", headlabel="*"]
-        "private key" -> "private keyring" [arrowhead=diamond, taillabel="*", headlabel="*"]
-
-        // Child to
-
-        "master key" -> "public key" [arrowhead=onormal]
-        "sub-key" -> "public key" [arrowhead=onormal]
-        "e-mail uid" -> "uid" [arrowhead=onormal]
-        "photo uid" -> "uid" [arrowhead=onormal]
-
-        // Mutually relates to
-
-        "private key" -> "public key" [arrowhead=none, label="same hash as"]
-
-        // Relates to
-
-        "private key" -> "smart card" [taillabel="*", headlabel="0..1"]
+        "private key" -> "public key" [arrowhead=none, label="same hash as", constraint=false]
+        "private key" -> "private keyring" [arrowhead=diamond, taillabel="*", headlabel="*", constraint=false]
+        "public key" -> "public keyring" [arrowhead=diamond, taillabel="*", headlabel="*", constraint=false]
         "gpg" -> "public keyring" [label="operates on"]
         "gpg" -> "private keyring" [label="operates on"]
+
+        //
+        // Private key sub-graph
+        //
+
+        subgraph cluster_private {
+                style=filled
+                color=tomato
+
+                // Nodes
+
+                "private key" [label="{private key|+ hash : Key fingerprint\l}"]
+                "key data to private key" [label="", fixedsize="false", width=0, height=0, shape=none]
+                "private key to smart card" [label="", fixedsize="false", width=0, height=0, shape=none]
+                "smart card" [label="{smart card|+ serial : Smart card serial number\l}"]
+                "private key data" [label="key data"]
+
+                // Relations
+
+                "private key data" -> "key data to private key" [arrowhead=none, taillabel="1"]
+                "key data to private key" -> "private key" [arrowhead=diamond, headlabel="1"]
+                "private key" -> "private key to smart card" [arrowhead=none, taillabel="1"]
+                "private key to smart card" -> "smart card" [headlabel="1"]
+                "key data to private key" -> "private key to smart card" [arrowhead=none, style=dashed, label="{xor}"]
+
+                { rank=same; "private key data" "smart card" }
+                { rank=same; "private key to smart card" "key data to private key" }
+        }
+
+        //
+        // Public key sub-graph
+        //
+
+        subgraph cluster_public {
+                style=filled
+                color=lightblue
+
+                // Nodes
+
+                "public key" [label="{public key|+ hash : Key fingerprint\l+ created : Date created\l+ expires : Expiration date\l+ usage : One or more of certify, sign, encrypt and authenticate\l}"]
+                "signature" [label="{signature|+ hash : Hash of key that signed the uid\l+ policy : URL to policy description\l+ notation : Notation text\l}"]
+                "public key data" [label="key data"]
+
+                // Relations
+
+                "sub-key" -> "master key" [arrowhead=diamond, taillabel="*", headlabel="1"]
+                "uid" -> "master key" [arrowhead=diamond, taillabel="*", headlabel="1"]
+                "signature" -> "uid" [arrowhead=diamond, taillabel="*", headlabel="1"]
+                "master key" -> "public key" [arrowhead=onormal]
+                "sub-key" -> "public key" [arrowhead=onormal]
+                "e-mail uid" -> "uid" [arrowhead=onormal]
+                "photo uid" -> "uid" [arrowhead=onormal]
+                "public key" -> "keyserver" [arrowhead=diamond, label="stores", taillabel="*", headlabel="*"]
+                "public key data" -> "public key" [arrowhead=diamond, taillabel="1", headlabel="1"]
+        }
 }
