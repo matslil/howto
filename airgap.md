@@ -77,9 +77,14 @@ apt-get install --yes ubuntu-standard casper lupin-casper
 apt-get install --yes discover laptop-detect os-prober
 apt-get install --yes linux-generic
 
-# Install yubikey and GPG support
+# Install yubikey tools
 apt-get install --yes yubikey-personalization-gui yubikey-neo-manager yubikey-personalization python-pkg-resources ykneomgr
-apt-get install --yes pcscd scdaemon gnupg2 pcsc-tools paperkey
+
+# Install GPG2, since it has better smart card support
+# Install pcscd, scdaemon and pscs-tools for smart card support
+# Install paperkey to translate GPG key to printable text file
+# Install haveged to improve entropy generation
+apt-get install --yes pcscd scdaemon gnupg2 pcsc-tools paperkey haveged
 
 # Install X-server support using xfce4 window manager, needed by some yubikey tools
 apt-get install --yes xserver-xorg xserver-xorg-core xfonts-base xinit x11-xserver-utils
