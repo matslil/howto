@@ -1,25 +1,6 @@
 % GPG Howto
 % Mats Liljegren
 
-Problems:
-
-- Using multiple Yubikeys for same GPG key
-- Having multiple smart card readers
-- Outlook 2013 plugin instability
-
-Successes:
-
-- Key signing using scripts
-- Decrypt using Android phone
-- Decrypt using Claws mail
-- Using Yubikey
-
-Tips:
-
-- Policy for signatures
-- Turn off unsafe hash algoritms (SHA-1, ??)
-- Signing key always use master key.
-
 About this howto
 ================
 
@@ -46,6 +27,11 @@ This is the official GPG web site:
 This is the standard for using GPG with mails:
 
 <https://tools.ietf.org/html/rfc4880>
+
+This is a somewhat more userfriendly explanation about GPG, with Ubuntu
+focus:
+
+<https://help.ubuntu.com/community/GnuPrivacyGuardHowto>
 
 The man-page is also a good source of information. I always use "gpg2",
 since it has better support for smart cards.
@@ -140,6 +126,32 @@ build on the following mechanism to assure this:
 These instructions have been greatly influenced by Simon Josefsson's blog
 [Offline GnuPG Master Key and Subkeys on YubiKey NEO Smartcard](https://blog.josefsson.org/2014/06/23/offline-gnupg-master-key-and-subkeys-on-yubikey-neo-smartcard/).
 Refer to this blog post for better motivations for the instructions.
+
+Creating GPG signature policy
+-----------------------------
+
+If you want to you can have web page describing what you mean with signing
+a GPG key. It should contain the following information:
+
+ -  Hash of the public key(s) it covers.
+ -  Where this key can be found, e.g. at pools.sks-keyservers.net, and/or
+    at an URL.
+ -  What does the signature levels mean to you? What kind of checks have you
+    made for each level?
+ -  When might you revoke your signature? E.g. if the signed key does not sign
+    your key?
+
+You should also be prepared that you might change your mind after having signed
+a number of keys based on your policy, and then change the policy. I suggest to
+use dates to say "This is the policy for signatures done starting from this
+date". People can then know what a signature meant at the time it was done.
+
+Here is my policy that you can use as a template if you wish, just be sure you
+remove any information about me first:
+
+<https://sites.google.com/site/matsgliljegrenpersonalpage/files/gpg-signature-policy.md>
+
+As you can see I use sites.google.com to have my personal free home page.
 
 Pre-requisites
 --------------
@@ -686,6 +698,294 @@ to from a pool of servers, and you might get a non-cooperating server. You can
 also check the following web page to get current status of the servers:
 
     https://sks-keyservers.net/status
+
+Using the keys
+==============
+
+This chapter will describe how to use the Yubikey.
+
+Make GPG see the key
+--------------------
+
+When using a new machine where you have never before used your key you need to
+first download your public key and then created stubs for the secret part so
+they refer to your Yubikey.
+
+First, insert your Yubikey.
+
+If you have an Internet connection you can download your key from the SKS
+keyserver pool:
+
+    gpg --keyserver pool.sks-keyservers.net --recv-keys <key ID>
+    gpg --card-status
+
+The "--card-status" will create the secret key stubs referring to your
+Yubikey.
+
+If you don't have Internet connection, or do not remember your key ID, but
+have the key available using an URL and this URL has been configured into
+your key, you can download it. Insert your Yubikey, and use the following
+command:
+
+    gpg2 --card-edit fetch
+
+This should take care of the stubs as well. At this stage, you might want to
+download the key anyway from the keyservers in case there are new important
+signatures you want included.
+
+Using claws-mail
+----------------
+
+Claws-mail is what I use the most, so it was the first one I got working with
+GPG encryption/decryption. It needs three plugins to work:
+
+ -  PGP/Core
+ -  PGP/inline
+ -  PGP/MIME
+
+On an Ubuntu system, this is done by:
+
+    sudo apt-get install claws-mail-pgpinline claws-mail-pgpmime
+
+Using Outlook
+-------------
+
+I got this working using Outlook 2013 on Windows 7. However, Outlook became
+instable and turned the needed plugin off for me. Newer versions of Outlook
+might work better.
+
+ 1. Install gpg4win <https://www.gpg4win.org>
+
+ 2. Start Kleopatra
+
+ 3. Choose 'Lookup certificates on server'
+
+ 4. Enter your name, e-mail address or key ID to search for your key.
+
+ 5. Click on the entry showing your key.
+
+ 6. Click 'import'.
+
+ 7. Insert your Yubikey
+
+ 8. Invoke a shell and run:
+
+        gpg --card-status
+
+Using Android phone
+-------------------
+
+You can decrypt mail handled by gmail application on your Android phone, if
+you have NFC. If so, install the following app from Google Play Store:
+
+ -  OpenKeychain: Easy PGP, by Sufficiently Secure
+
+When starting the app you first need to tell it what your key ID is, and then
+hold the Yubikey to associate the key ID with your Yubikey. A mistake I did
+was to remove the Yubikey as soon as it reacted to it. Make sure it says that
+it is finished reading your Yubikey before removing it!
+
+Participating in a key signing party
+------------------------------------
+
+To make your key trustworthy, you need to get signatures on your user IDs.
+The trustness is, somewhat simplified, calculated based on how many key
+signatures away from a key you have indicated as trustworthy. The result
+is seen as "valid" level.
+
+One way to get a number of signatures to improve your key's trustness is
+to participate in a key signing party. This is basically a get together
+where you check other peoples identities, their key fingerprint and their
+user IDs. You then download their keys, sign them, and then send an
+encrypted mail to them with their signed key.
+
+### Preparing for participating on a key signing party
+
+Before going to a key signing party, you usually have to prepare by doing the
+following things:
+
+ 1. Upload your key either by e-mail to the organizer, to a special keyserver
+    or to a SKS keyserver. Which way to do this should have been stated in the
+    event invitation.
+
+ 2. When everybody are expected to have uploaded their keys, download the list
+    of keys. This should be a text file where each entry should look like the
+    output of `gpg --fingerprint` command, but probably without information
+    about sub-keys.
+
+ 3. Print this file on paper, so you don't need to hold a computer when doing
+    ID checking.
+
+ 4. On the printed list of keys, enter calculated hashes per organizers
+    instructions.
+
+ 5. If you're ambititous you also print all pictures stored in the public keys.
+
+ 6. Make a badge you can wear at the party stating:
+     -   Entry number as stated in the printed key list, so people can quickly
+         find you in the list. This is the most important information, so make
+         it clearly visible.
+     -   Statement that you have checked key fingerprint. Make sure that this
+         is true as well.
+
+If you're ambitious you might want to read up on
+<http://www.consilium.europa.eu/prado/en/check-document-numbers.html> for
+information about how to verify European ID documentation.
+
+### At the key signing party
+
+The hashes for the file should be announced verbally, to avoid problems with
+some joker switching papers or something. Check that the announced hash
+matches what you have noted. If not, leave the party. Hope for better luck
+the next time. But make sure the mismatch isn't because of mispronounciation.
+
+Note that sometimes people try fake documents just to see how hard it can be
+to fool people. So if you're not convinced by some presented documentation,
+don't be afraid to say so. The document might be valid, but you must still be
+convinced, and sometimes the present documentation might be of some type that
+you're not familiar with.
+
+Make sure you have your badge clearly visible when the event starts.
+
+Some events can take hours to complete. If you feel that your're too tired to
+do a decent ID check, it is ok to leave. You still have some signatures,
+better than nothing, and better than signing people you don't really have a
+clue who they are.
+
+If you intend to check the validity of the document number, make sure you
+note them on the printed key list paper.
+
+### After the key signing party
+
+When the party is over, make sure there is a forum where all participants can
+share any findings about faked IDs. Experience has showned that individuals
+are not great at finding them all, but at bigger events someone usually spots
+the fake and might not have the guts to shout it out, afraid of falsely
+accusing someone.
+
+It can therefore be a good idea to discuss this on a mailing list. If several
+people has found the same ID being fake, then it is probably fake. Something
+that is good for the rest to know.
+
+For European documents you might want to check the validity of the
+document number at
+<http://www.consilium.europa.eu/prado/en/check-document-numbers.html>.
+
+Make a copy of the file with list of keys you printed earlier, and remove all
+keys that you have decided not to sign. Then for each entry, you need to sign
+the key. This needs to be done in such a way that you can send an encrypted
+mail for each user ID, and thereby check the validity of the e-mail address.
+If the receiver can decrypt the signed key, the e-mail was probably owned by
+this person and he therefore deserved your signature.
+
+Unfortunately GPG is somewhat hard to work with, doing the above requires
+a number of steps:
+
+ 1. Download the public key you're about to sign.
+ 2. Sign it, optionally supplying a policy URL.
+ 3. Export the signed key to a file.
+ 4. Delete all user identities except for one. Don't count any
+    photos or revokes identities.
+ 5. Export the key again to a new file.
+ 6. If there are more user IDs to handle, re-import the original signed key
+    file, and start over at step 4.
+ 7. For each file with only one signed user ID, make an e-mail with the
+    key as an attachment, and encrypt this mail.
+ 8. Send the mail to the user ID signed in the attachment file.
+ 9. Start over at step 1 for next public key you are about to sign.
+
+The reason for doing things this way is to ensure that the e-mail addresses
+given are valid addresses and useable by the key owner. Note that not
+everyone want you to upload your signatures to a public SKS keyserver.
+
+When I needed to do this for about 150 public keys, I ended up writing a
+script. If you want how to perform above step, read my scripts at:
+
+<https://github.com/matslil/keysign>
+
+There are other tools as well:
+
+ -  caff - <https://wiki.debian.org/caff>
+ -  pius - <https://www.phildev.net/pius>
+
+I didn't use them since I want to know what is happening, and I couldn't
+understand their source code well enough to feel comfortable. I tried to
+make my script simple enough that you should be able to understand what
+it does.
+
+Tell people about your key
+--------------------------
+
+The shortest way of telling people you have a GPG key, is by simply saying:
+
+GPG fingerprint: <fingerprint>
+
+This makes it possible for people to search for your key based on the key
+fingerprint by using last part as key ID and then verify the fingerprint when
+a match was found. This line could be added to your business card and e-mail
+signature.
+
+Troubleshooting
+===============
+
+I had some problems with smart card support and GPG. In the end, it boiled
+down to two issues:
+
+ -  Multiple smart card readers
+ -  Multiple smart cards for same key ID
+
+Multiple smart card readers cause problems
+------------------------------------------
+
+GPG will by default take the first smart card reader it finds and use it.
+It does not have intelligence like if the first reader does not have any
+smart card inserted, try next. It will fail instead, complaining there was
+no smart card.
+
+To check what smart card readers GPG can see, use the following command:
+
+    pcsc_scan
+
+To force usage of a reader not being first in that list, create a file named
+`~/scdaemon.conf`, and add a line with the following syntax:
+
+    reader-port <name>
+
+The "name" part can be copied from the output of the `pcsc_scan` output.
+
+Kill scdaemon and gpg-agent daemons to make sure the change is noticed:
+
+    killall scdaemon
+    killall gpg-agent
+
+These will automatically start again next time you use GPG. Test this with:
+
+    gpg2 --card-status
+
+Problems with multiple smart cards for same key ID
+--------------------------------------------------
+
+The secret key stores a reference which smart card to use. When doing
+`gpg2 --card-status` to update this, all keys will be updated. This includes
+master key as well as sub-keys.
+
+I have one Yubikey for my master key and one Yubikey for all my sub-keys.
+When I have used one of them, I can't use the other. The simplest way to
+switch is to delete the private keys. Since they are only stubs, you do not
+loose valuable information.
+
+    gpg2 --list-secret-keys
+
+This will list all secret keys, to make sure you select the right key.
+
+    gpg2 --delete-secret-key <key ID>
+
+Use the master key ID to delete all secret keys. Then insert the Yubikey you
+want to associate the key with and run:
+
+    gpg2 --card-status
+
+This will re-create the stubs again, referring to your new Yubikey.
 
 License
 =======
