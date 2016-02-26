@@ -9,6 +9,10 @@ not connected to the network, which is called an air-gap computer.
 
 These instructions assume Ubuntu Linux, and was tested on Ubuntu 15.04.
 
+Source code for this howto can be found here:
+
+<https://github.com/matslil/howto>
+
 Preparing host
 ==============
 

@@ -13,6 +13,10 @@ was important but was missing. So that is wy I wrote this howto. It most
 likely has things missing too, especially if doing things different from how
 I have done.
 
+Source code for this howto can be found here:
+
+<https://github.com/matslil/howto>
+
 Quick GPG into
 ==============
 
