@@ -1,5 +1,8 @@
-How to create air-gap computer ISO
-==================================
+% Air-Gap Computer Howto
+% Mats G. Liljegren
+
+About this howto
+================
 
 This is a guide how to create an ISO image to be run on a computer that is
 not connected to the network, which is called an air-gap computer.
@@ -7,7 +10,7 @@ not connected to the network, which is called an air-gap computer.
 These instructions assume Ubuntu Linux, and was tested on Ubuntu 15.04.
 
 Preparing host
---------------
+==============
 
 On host:
 
@@ -24,7 +27,8 @@ Download Ubuntu 15.10 i386 to ~/Downloads
 ```
 mkdir ~/vm-airgap
 cd ~/vm-airgap
-virt-install -n vm-airgap --memory 2048 --cdrom ~/Downloads/ubuntu-15.10-desktop-i386.iso --disk ~/vm-airgap/vm-airgap.qcow2,size=24,format=qcow2 --network network=default
+virt-install -n vm-airgap --memory 2048 --cdrom ~/Downloads/ubuntu-15.10-desktop-i386.iso \
+--disk ~/vm-airgap/vm-airgap.qcow2,size=24,format=qcow2 --network network=default
 ```
 
 On virtual machine:
@@ -41,7 +45,7 @@ sudo debootstrap wily chroot
 ```
 
 Setup change root environment
------------------------------
+=============================
 
 ```
 sudo cp /etc/hosts chroot/etc/hosts
@@ -53,10 +57,10 @@ mount none -t sysfs /sys
 mount none -t devpts /dev/pts
 export HOME=/root
 export LC_ALL=C
-~~~"
+```
 
 Preparing root file system
---------------------------
+==========================
 
 ```
 # Install add-apt-repository tool
@@ -78,7 +82,8 @@ apt-get install --yes discover laptop-detect os-prober
 apt-get install --yes linux-generic
 
 # Install yubikey tools
-apt-get install --yes yubikey-personalization-gui yubikey-neo-manager yubikey-personalization python-pkg-resources ykneomgr
+apt-get install --yes yubikey-personalization-gui yubikey-neo-manager 
+apt-get install --yes yubikey-personalization python-pkg-resources ykneomgr
 
 # Install GPG2, since it has better smart card support
 # Install pcscd, scdaemon and pscs-tools for smart card support
@@ -88,7 +93,9 @@ apt-get install --yes pcscd scdaemon gnupg2 pcsc-tools paperkey haveged
 
 # Install X-server support using xfce4 window manager, needed by some yubikey tools
 apt-get install --yes xserver-xorg xserver-xorg-core xfonts-base xinit x11-xserver-utils
-apt-get install --yes xfwm4 xfce4-panel xfce4-settings xfce4-session xfce4-terminal xfdesktop4 xfce4-taskmanager tango-icon-theme lightdm lightdm-gtk-greeter
+apt-get install --yes xfwm4 xfce4-panel xfce4-settings xfce4-session xfce4-terminal
+apt-get install --yes xfdesktop4 xfce4-taskmanager tango-icon-theme lightdm
+apt-get install --yes lightdm-gtk-greeter
 
 # Force gpg2
 ln -s /usr/bin/gpg2 /usr/local/bin/gpg
@@ -107,7 +114,7 @@ echo "Use 'ubuntu' as user name to login." >> /etc/issue
 ```
 
 Cleanup root file system
-------------------------
+========================
 
 ```
 rm /var/lib/dbus/machine-id
@@ -126,7 +133,7 @@ Back at the host:
     sudo umount -lf ${HOME}/work/chroot/dev
 
 Create boot files
------------------
+=================
 
 ```
 # Create directory hierarchy
@@ -135,7 +142,8 @@ mkdir -p image/{casper,isolinux,install}
 # Copy files needed for booting
 sudo cp chroot/boot/vmlinuz-*-generic image/casper/vmlinuz
 sudo cp chroot/boot/initrd.img-*-generic image/casper/initrd.lz
-cp /usr/lib/ISOLINUX/isolinux.bin /usr/lib/syslinux/modules/bios/ldlinux.c32 image/isolinux/
+cp /usr/lib/ISOLINUX/isolinux.bin /usr/lib/syslinux/modules/bios/ldlinux.c32 \
+image/isolinux/
 cp /boot/memtest86+.bin image/install/memtest
 
 # Create boot welcome message
@@ -171,14 +179,16 @@ EOF
 ```
 
 Make the squashfs image from the root file system
--------------------------------------------------
+=================================================
 
 ```
 # Create a manifest file with package names and version, removing packages
 # not needed for hard-disk installation
-sudo chroot chroot dpkg-query -W --showformat='${Package} ${Version}\n' | sudo tee image/casper/filesystem.manifest
+sudo chroot chroot dpkg-query -W --showformat='${Package} ${Version}\n' | sudo tee \
+image/casper/filesystem.manifest
 sudo cp -v image/casper/filesystem.manifest image/casper/filesystem.manifest-desktop
-REMOVE='ubiquity ubiquity-frontend-gtk ubiquity-frontend-kde casper lupin-casper live-initramfs user-setup discover1 xresprobe os-prober libdebian-installer4'
+REMOVE='ubiquity ubiquity-frontend-gtk ubiquity-frontend-kde casper lupin-casper '\
+'live-initramfs user-setup discover1 xresprobe os-prober libdebian-installer4'
 for i in $REMOVE 
 do
         sudo sed -i "/${i}/d" image/casper/filesystem.manifest-desktop
@@ -195,7 +205,7 @@ sudo mksquashfs chroot image/casper/filesystem.squashfs -e boot
 ```
 
 Prepare ISO meta files
-----------------------
+======================
 
 ```
 # Describe ISO image to be created
@@ -221,16 +231,18 @@ echo "http://your-release-notes-url.com" > image/.disk/release_notes_url
 ```
 
 Create ISO image
-----------------
+================
 
 ```
-sudo -- sh -c 'cd image && find . -type f -print0 | xargs -0 md5sum | grep -v "\./md5sum.txt" > md5sum.txt'
+sudo -- sh -c 'cd image && find . -type f -print0 | xargs -0 md5sum | grep -v \
+"\./md5sum.txt" > md5sum.txt'
 
-(cd image && sudo mkisofs -r -V "air-gap" -cache-inodes -J -l -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o ../air-gap.iso .)
+(cd image && sudo mkisofs -r -V "air-gap" -cache-inodes -J -l -b isolinux/isolinux.bin -c \
+isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -o ../air-gap.iso .)
 ```
 
 Testing the image
------------------
+=================
 
 Copy the image to the host:
 
@@ -248,9 +260,18 @@ rm -f ~/air-gap.iso
 ```
 
 References
-----------
+==========
 
 * https://help.ubuntu.com/community/LiveCDCustomizationFromScratch
 * https://www.sidorenko.io/blog/2014/11/04/yubikey-slash-openpgp-smartcards-for-newbies
 * https://xpressubuntu.wordpress.com/2014/02/22/how-to-install-a-minimal-ubuntu-desktop/
+
+License
+=======
+
+![](license-icon-88x31.png)
+
+Copyright (C) 2016, Mats G. Liljegren
+
+This work is licensed under a Creative Commons Attribution 4.0 International License.
 

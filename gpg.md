@@ -1,3 +1,6 @@
+% GPG Howto
+% Mats Liljegren
+
 Problems:
 
 - Using multiple Yubikeys for same GPG key
@@ -17,17 +20,32 @@ Tips:
 - Turn off unsafe hash algoritms (SHA-1, ??)
 - Signing key always use master key.
 
+About this howto
+================
+
+I decided I wanted GPG keys, and I wanted to do it the "proper" way. After
+extensive searches around the net and a lot of own trials, I gained some
+knowledge that I now want to share with this howto.
+
+There are a lot of howto's in the net, but every howto had things I thought
+was important but was missing. So that is wy I wrote this howto. It most
+likely has things missing too, especially if doing things different from how
+I have done.
+
 Quick GPG into
 ==============
 
 The following web site explains what GPG is:
- -  https://en.wikipedia.org/wiki/GNU_Privacy_Guard
+
+<https://en.wikipedia.org/wiki/GNU_Privacy_Guard>
 
 This is the official GPG web site:
- -  https://www.gnupg.org
+
+<https://www.gnupg.org>
 
 This is the standard for using GPG with mails:
- -  https://tools.ietf.org/html/rfc4880
+
+<https://tools.ietf.org/html/rfc4880>
 
 The man-page is also a good source of information. I always use "gpg2",
 since it has better support for smart cards.
@@ -36,7 +54,7 @@ Some things were not that obvious to me from the beginning, so I'll try to
 cover them in this chapter. First a nice graph below how things relate to
 each other:
 
-![GPG diagram](gpg.svg)
+![GPG diagram](gpg-overview)
 
 GPG command and keyrings
 ------------------------
@@ -114,7 +132,8 @@ The tricky part is to keep the private key data private. These instructions
 build on the following mechanism to assure this:
 
  1. Keys are generated on a computer not connected to a network.
- 2. Backup copy of private key data is stored safely, e.g. in a safe.
+ 2. Backup copy of private key data is stored safely, e.g. in a safe. This
+    copy is never seen by any unsafe (i.e. non-airgap) computer.
  3. For usage, private key data is stored on a Yubikey, making copying
     impossible.
 
@@ -131,7 +150,7 @@ You need the following before moving on:
  -  One computer guaranteed to not connect to any network, i.e. wifi hardware
     non-existent or disabled, network cables unconnected etc. It is an
     advantage if the computer does not have a harddisk.
- -  ISO image to boot on the air-gap computer, see [air-gap howto](airgap.md)
+ -  ISO image to boot on the air-gap computer, see air-gap howto.
     for instructions how to make one.
  -  One computer with network connection.
  -  One, or preferably three, USB memory sticks. I used normal sized SD card to
@@ -668,10 +687,12 @@ also check the following web page to get current status of the servers:
 
     https://sks-keyservers.net/status
 
-Licese
-======
+License
+=======
 
-![License icon](license-icon-88x31.png)
+![](license-icon-88x31.png)
+
+Copyright (C) 2016, Mats G. Liljegren
+
 This work is licensed under a Creative Commons Attribution 4.0 International License.
-
 
