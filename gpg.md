@@ -961,6 +961,7 @@ Kill scdaemon and gpg-agent daemons to make sure the change is noticed:
 
     killall scdaemon
     killall gpg-agent
+    GPG_AGENT_INFO=
 
 These will automatically start again next time you use GPG. Test this with:
 
