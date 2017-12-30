@@ -373,4 +373,39 @@ tmpfs     /run/shm     tmpfs     ro,nosuid,nodev,noexec     0     0
 EOF
 ~~~~
 
+Hard disk failure detection
+===========================
 
+Make script that checks hard disk status:
+
+    mkdir ~/bin
+    cat > ~/bin/weekly.sh <<EOF
+    #!/bin/sh -eu
+
+    DEVICES="sdc sdd"
+
+    for dev in $DEVICES; do
+      sudo /usr/sbin/smartctl -l error /dev/$dev
+    done
+    EOF
+
+Edit CRON table for current user to run this service at a weekly basis:
+
+    crontab -e
+
+Add following lines:
+
+    MAILTO="liljegren.mats@gmail.com"
+    @weekly $HOME/bin/weekly.sh
+
+Make sure current user can run this script with root privilege without password:
+
+    sudo cat > /etc/sudoers.d/smartctl-$USER <<EOF
+    # Allow $USER to run smartctl as root without password, so cron job does not need to run with root privileges
+    $USER ALL = (root) NOPASSWD: /usr/sbin/smartctl
+    EOF
+
+As mentioned above when installing TLP for power save, there is no monitoring of disks about to fail.
+
+   smartctl --quietmode=errorsonly --log=error
+ 
