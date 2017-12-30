@@ -400,7 +400,7 @@ Add following lines:
 
 Make sure current user can run this script with root privilege without password:
 
-    sudo cat > /etc/sudoers.d/smartctl-$USER <<EOF
+    cat <<EOF | sudo tee /etc/sudoers.d/smartctl-$USER > /dev/null
     # Allow $USER to run smartctl as root without password, so cron job does not need to run with root privileges
     $USER ALL = (root) NOPASSWD: /usr/sbin/smartctl
     EOF
