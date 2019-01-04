@@ -68,37 +68,50 @@ Netowrk mount
     sudo systemctl daemon-reload
     sudo systemctl enable mnt-kodi_home.mount
 
-Define Kodi service
-===================
+Install Kodi
+============
 
-    sudo cat <<EOF | sudo tee /etc/systemd/system/kodi.service
+    sudo apt install kodi
+
+Make sure the file /etc/systemd/system/default.target.wants/kodi-autologin.service is a link to /lib/systemd/system/ureadahead.service, otherwise use "sudo systemctl enable kodi-autologin.service". The linked to file should have the following content:
+
     [Unit]
-    Description=Job that runs Kodi
-    After=default.target graphical.target getty.target sound.target mnt-kodi_home.mount
+    Description=Read required files in advance
+    DefaultDependencies=false
+    Conflicts=shutdown.target
+    Before=shutdown.target
+    Requires=ureadahead-stop.timer
+    RequiresMountsFor=/var/lib/ureadahead
+    ConditionVirtualization=no
+
     [Service]
-    User=kodi
-    Restart=always
-    RestartSec=1s
-    ExecStart=/usr/bin/xinit /usr/bin/kodi --standalone -- -nocursor
+    ExecStart=/sbin/ureadahead
+    # when profiling, give it three minutes after sending SIGTERM to write out the pack file
+    TimeoutStopSec=3m
+
     [Install]
     WantedBy=default.target
-    EOF
 
-    sudo systemctl daemon-reload
-    sudo systemctl enable kodi
+Start Kodi in X-server
+======================
 
-Work-Around for X-windows
-=========================
+    sudo apt install openbox
 
-For Ubuntu 16.04 the following is needed to work-around permission problems:
+Setup scripts for starting Kodi in X-windows:
 
-    sudo apt-get install xserver-xorg-legacy
-    sudo dpkg-reconfigure xserver-xorg-legacy
+    cd
+    wget -O openbox-kodi-master.zip https://github.com/lufinkey/kodi-openbox/archive/master.zip
+    sudo apt install unzip
+    unzip openbox-kodi-master.zip
+    cd kodi-openbox-master
+    bash ./build.sh
+    sudo dpkg -i kodi-openbox.deb
 
-Choose "Anybody".
+Start X-windows when logging in into Kodi account:
 
-    cat <<EOF | sudo tee -a /etc/X11/Xwrapper.config
-    needs_root_rights=yes
+    sudo su kodi
+    cat > ~/.bash_profile <<EOF
+    [[ -z $DISPLAY ]] && [[ $(tty) = /dev/tty1 ]] && exec startx
     EOF
 
 Try Kodi
@@ -127,7 +140,7 @@ This one needs to be built from sources, didn't find an Ubuntu package for it.
 
     cd vice
     ./autogen.sh
-    ./configure --enable-fullscreen --with-pulse --enable-vte --enable-cpuhistory --with-resid --enable-external-ffmpeg
+    ./configure --enable-fullscreen --with-pulse --with-x --enable-vte --enable-cpuhistory --with-resid --enable-external-ffmpeg
     make
 
 4) Install
@@ -139,20 +152,10 @@ Installing PlayStation 2 Emulator
 
 1) Install
 
-    sudo apt-get install pcsx2
+    sudo apt install pcsx2
 
 Installing EmulationStation, RetroArch and Steam
 ================================================
 
-Instructions followed: https://github.com/BrosMakingSoftware/Kodi-Launches-EmulationStation-Addon
-
-1) Add repositories for emulator and Steam support
-
-    sudo apt-add-repository ppa:libretro/stable
-    sudo apt-add-repository ppa:emulationstation/ppa
-    sudo apt-add-repository ppa:dolphin-emu/ppa
-    sudo apt-get update
-
-2) Install emulators, EmulationStation and Steam
-
-    
+    sudo apt install emulationstation* steam
+   
